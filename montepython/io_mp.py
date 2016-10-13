@@ -211,6 +211,36 @@ def print_vector(out, N, loglkl, data):
         out[j].write('\n')
 
 
+def print_error(error_msg, data):
+    """
+    Register parameters leading to class_error to :code:`out`
+
+    Parameters
+    ----------
+    out : list
+        Array containing both standard output and the output file.
+
+        This way, if you run in interactive mode, you will be able to monitor
+        the progress of the chain.
+    error_msg : string
+        Error message: the idea is not to keep the whole error message, 
+        but to read part of it and asign it an error tag
+        0 => error not identified
+        n>0 => different error codes
+
+    .. note::
+
+        It is the `current` point that is printed, which produced the error
+        No derived parameters are written (maybe not produced)
+    """
+    out = data.err
+    for elem in data.get_mcmc_parameters(['varying']):
+      out.write('%.6e\t' %
+		data.mcmc_parameters[elem]['current'])
+    out.write(error_msg)
+    out.write('\n')
+        
+
 def refresh_file(data):
     """
     Closes and reopen the output file to write any buffered quantities
@@ -218,6 +248,9 @@ def refresh_file(data):
     """
     data.out.close()
     data.out = open(data.out_name, 'a')
+    
+    data.err.close()
+    data.err = open(data.err_name, 'a')
 
 
 def create_output_files(command_line, data):
@@ -273,6 +306,13 @@ def create_output_files(command_line, data):
     if command_line.restart is not None:
         for line in open(command_line.restart, 'r'):
             data.out.write(line)
+            
+    #open/create error file        
+    data.err_name = os.path.join(command_line.folder,"error_log.txt")
+    data.err = open(data.err_name,'a')
+    print 'Creating error file %s\n' % data.err_name
+            
+        
 
 
 def get_tex_name(name, number=1):

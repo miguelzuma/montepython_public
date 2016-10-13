@@ -452,7 +452,7 @@ def chain(cosmo, data, command_line):
             # just computed ('current' flag), but really the previous one.)
             # with its proper multiplicity (number of times the system stayed
             # there).
-            io_mp.print_vector(outputs, N, loglike, data)
+            io_mp.print_vector(outputs, N, loglike, data)                    
 
             # Report the 'current' point to the 'last_accepted'
             sampler.accept_step(data)

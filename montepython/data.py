@@ -189,6 +189,11 @@ class Data(object):
         self.out = None
         self.out_name = ''
 
+        # Create the variable err, and err_name to keep the errors
+        # will be initialised later by the :mod:`io_mp` module
+        self.err = None
+        self.err_name = ''
+
         # If the parameter file is not a log.param, the path will be read
         # before reading the parameter file.
         if self.param.find('log.param') == -1:

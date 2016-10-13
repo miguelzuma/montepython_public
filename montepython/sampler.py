@@ -489,10 +489,14 @@ def compute_lkl(cosmo, data):
         # point, but with minimum likelihood, so will be rejected, resulting in
         # the choice of a new point.
         try:
-            cosmo.compute(["lensing"])
+            cosmo.compute(["lensing"])            
         except CosmoComputationError as failure_message:
             sys.stderr.write(str(failure_message)+'\n')
             sys.stderr.flush()
+            
+            #write the error file            
+            io_mp.print_error(str(failure_message), data)
+            
             return data.boundary_loglike
         except CosmoSevereError as critical_message:
             raise io_mp.CosmologicalModuleError(
