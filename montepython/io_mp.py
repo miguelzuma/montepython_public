@@ -229,15 +229,43 @@ def print_error(error_msg, data):
         n>0 => different error codes
 
     .. note::
+    
+	We use error codes instead of recording the full error messages
+	unless the error is not identified
 
         It is the `current` point that is printed, which produced the error
         No derived parameters are written (maybe not produced)
+    
     """
+    
+    # -1 is for unmarked error
+    err_code = -1
+    # rewrite with different possibilities 
+    # errors in background are 1-10, perturbations 10-99...
+    if 'Shooting failed' in error_msg:
+      err_code = 0
+    if 'Gradient instability' and 'scalar' in error_msg:
+      err_code = 1
+    if 'Gradient instability' and 'tensor' in error_msg:
+      err_code = 2
+    if 'Ghost instability' and 'scalar' in error_msg:
+      err_code = 3
+    if 'Ghost instability' and 'tensor' in error_msg:
+      err_code = 4
+      
+    if "Isnan v_X" in error_msg:
+      err_code = 10
+    
+    
     out = data.err
     for elem in data.get_mcmc_parameters(['varying']):
       out.write('%.6e\t' %
 		data.mcmc_parameters[elem]['current'])
-    out.write(error_msg)
+    # if error unidentified write full message      
+    if err_code == -1:
+      out.write(str(err_code) + "\t" + error_msg)
+    else:
+      out.write(str(err_code))
     out.write('\n')
         
 
