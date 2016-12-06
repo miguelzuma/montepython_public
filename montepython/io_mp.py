@@ -223,51 +223,51 @@ def print_error(error_msg, data):
         This way, if you run in interactive mode, you will be able to monitor
         the progress of the chain.
     error_msg : string
-        Error message: the idea is not to keep the whole error message, 
+        Error message: the idea is not to keep the whole error message,
         but to read part of it and asign it an error tag
         0 => error not identified
         n>0 => different error codes
 
     .. note::
-    
+
 	We use error codes instead of recording the full error messages
 	unless the error is not identified
 
         It is the `current` point that is printed, which produced the error
         No derived parameters are written (maybe not produced)
-    
+
     """
-    
+
     # -1 is for unmarked error
     err_code = -1
-    # rewrite with different possibilities 
+    # rewrite with different possibilities
     # errors in background are 1-10, perturbations 10-99...
     if 'Shooting failed' in error_msg:
       err_code = 0
-    if 'Gradient instability' and 'scalar' in error_msg:
+    if all(x in error_msg for x in ['Gradient instability', 'scalar']):
       err_code = 1
-    if 'Gradient instability' and 'tensor' in error_msg:
+    if all(x in error_msg for x in ['Gradient instability', 'tensor']):
       err_code = 2
-    if 'Ghost instability' and 'scalar' in error_msg:
+    if all(x in error_msg for x in ['Ghost instability', 'scalar']):
       err_code = 3
-    if 'Ghost instability' and 'tensor' in error_msg:
+    if all(x in error_msg for x in ['Ghost instability', 'tensor']):
       err_code = 4
-      
+
     if "Isnan v_X" in error_msg:
       err_code = 10
-    
-    
+
+
     out = data.err
     for elem in data.get_mcmc_parameters(['varying']):
       out.write('%.6e\t' %
 		data.mcmc_parameters[elem]['current'])
-    # if error unidentified write full message      
+    # if error unidentified write full message
     if err_code == -1:
       out.write(str(err_code) + "\t" + error_msg)
     else:
       out.write(str(err_code))
     out.write('\n')
-        
+
 
 def refresh_file(data):
     """
@@ -276,7 +276,7 @@ def refresh_file(data):
     """
     data.out.close()
     data.out = open(data.out_name, 'a')
-    
+
     data.err.close()
     data.err = open(data.err_name, 'a')
 
@@ -334,13 +334,13 @@ def create_output_files(command_line, data):
     if command_line.restart is not None:
         for line in open(command_line.restart, 'r'):
             data.out.write(line)
-            
-    #open/create error file        
+
+    #open/create error file
     data.err_name = os.path.join(command_line.folder,"error_log.txt")
     data.err = open(data.err_name,'a')
     print 'Creating error file %s\n' % data.err_name
-            
-        
+
+
 
 
 def get_tex_name(name, number=1):
