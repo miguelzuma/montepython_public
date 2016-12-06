@@ -244,17 +244,19 @@ def print_error(error_msg, data):
     # errors in background are 1-10, perturbations 10-99...
     if 'Shooting failed' in error_msg:
       err_code = 0
-    if 'Gradient instability' and 'scalar' in error_msg:
+    if 'Gradient' and 'scalar' in error_msg:
       err_code = 1
-    if 'Gradient instability' and 'tensor' in error_msg:
+    if 'Gradient' and 'tensor' in error_msg:
       err_code = 2
-    if 'Ghost instability' and 'scalar' in error_msg:
+    if 'Ghost' and 'scalar' in error_msg:
       err_code = 3
-    if 'Ghost instability' and 'tensor' in error_msg:
+    if 'Ghost' and 'tensor' in error_msg:
       err_code = 4
       
-    if "Isnan v_X" in error_msg:
+    if 'Isnan v_X' in error_msg:
       err_code = 10
+    if 'early_smg' and 'adiabatic' in error_msg:
+      err_code = 11
     
     
     out = data.err
@@ -265,6 +267,7 @@ def print_error(error_msg, data):
     if err_code == -1:
       out.write(str(err_code) + "\t" + error_msg)
     else:
+      #print "error",err_code
       out.write(str(err_code))
     out.write('\n')
         
