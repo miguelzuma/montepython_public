@@ -627,3 +627,8 @@ class FiducialModelWritten(MyError):
 class AnalyzeError(MyError):
     """Used when encountering a fatal mistake in analyzing chains"""
     pass
+
+
+class ParameterError(MyError):
+    """Used when some MontePython parameter is not correctly set"""
+    pass

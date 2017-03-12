@@ -1000,7 +1000,12 @@ class Parameter(dict):
         dict.__init__(self)
 
         self['initial'] = array[0:4]
-        self['scale'] = array[4]
+        if array[4]:
+            self['scale'] = array[4]
+        else:
+            raise io_mp.ParameterError("You chose scale 0 to param {}. Correct\
+                                       it.".format(key))
+
         self['role'] = array[-1]
         self['tex_name'] = io_mp.get_tex_name(key)
         if array[3] == 0:
