@@ -672,6 +672,23 @@ def compute_posterior(information_instances):
                                 "'%s-%s' 2d-plot" % (
                                     info.plotted_parameters[info.native_index],
                                     info.plotted_parameters[info.native_second_index]))
+                        except ValueError as e:
+                            if str(e) == "Contour levels must be increasing":
+                                warnings.warn(
+                                    "The routine could not find the contour of the " +
+                                    "'%s-%s' 2d-plot. \n " % (
+                                        info.plotted_parameters[info.native_index],
+                                        info.plotted_parameters[info.native_second_index]) +
+                                    'The error is: "Contour levels must be increasing"' +
+                                    " but " + str(ctr_level(info.n, info.levels[:2])) +
+                                    " were found. This may happen when most" +
+                                    " points fall in the same bin.")
+                            else:
+                                warnings.warn(
+                                    "The routine could not find the contour of the " +
+                                    "'%s-%s' 2d-plot" % (
+                                        info.plotted_parameters[info.native_index],
+                                        info.plotted_parameters[info.native_second_index]))
 
                         ax2dsub.set_xticks(info.ticks[info.native_second_index])
                         if index == len(plotted_parameters)-1:
