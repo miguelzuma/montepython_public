@@ -672,6 +672,23 @@ def compute_posterior(information_instances):
                                 "'%s-%s' 2d-plot" % (
                                     info.plotted_parameters[info.native_index],
                                     info.plotted_parameters[info.native_second_index]))
+                        except ValueError as e:
+                            if str(e) == "Contour levels must be increasing":
+                                warnings.warn(
+                                    "The routine could not find the contour of the " +
+                                    "'%s-%s' 2d-plot. \n " % (
+                                        info.plotted_parameters[info.native_index],
+                                        info.plotted_parameters[info.native_second_index]) +
+                                    'The error is: "Contour levels must be increasing"' +
+                                    " but " + str(ctr_level(info.n, info.levels[:2])) +
+                                    " were found. This may happen when most" +
+                                    " points fall in the same bin.")
+                            else:
+                                warnings.warn(
+                                    "The routine could not find the contour of the " +
+                                    "'%s-%s' 2d-plot" % (
+                                        info.plotted_parameters[info.native_index],
+                                        info.plotted_parameters[info.native_second_index]))
 
                         ax2dsub.set_xticks(info.ticks[info.native_second_index])
                         if index == len(plotted_parameters)-1:
@@ -788,8 +805,8 @@ def minimum_credible_intervals(info):
     bounds = np.zeros((len(levels), 2))
     j = 0
     delta = bincenters[1]-bincenters[0]
-    left_edge = np.max(histogram[0] - 0.5*(histogram[1]-histogram[0]), 0.)
-    right_edge = np.max(histogram[-1] + 0.5*(histogram[-1]-histogram[-2]), 0.)
+    left_edge = np.max(histogram[0] - 0.5*(histogram[1]-histogram[0]), 0)
+    right_edge = np.max(histogram[-1] + 0.5*(histogram[-1]-histogram[-2]), 0)
     failed = False
     for level in levels:
         norm = float(
