@@ -1006,7 +1006,7 @@ class Parameter(dict):
             raise io_mp.ParameterError("You chose scale 0 to param {}. Correct\
                                        it.".format(key))
 
-        self['role'] = array[-1]
+        self['role'] = array[5]
         self['tex_name'] = io_mp.get_tex_name(key)
         if array[3] == 0:
             self['status'] = 'fixed'
