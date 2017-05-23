@@ -8,8 +8,6 @@
 
 # Covariance matrix_ij = sigma_i sigma_j Correlation_matrix_ij
 
-#Planck_compressed.inverse_correlation_matrix = np.linalg.inv([[1., 0.54, -0.63, -0.86], [0.54, 1., -0.43, -0.48],  [-0.63, -0.43, 1., 0.58], [-0.86, -0.48, 0.58, 1.]]) 
-
 Planck_compressed.inverse_correlation_matrix = [[ 4.51266537, -0.59697118, 0.75581806,  3.15597158], [-0.59697118,  1.43957767,  0.21084593,  0.05531143], [ 0.75581806,  0.21084593,  1.70453221, -0.2374191 ], [ 3.15597158, 0.05531143, -0.2374191 ,  3.87838813]]
 
                       # mean, std. dev. (sigma)
@@ -18,7 +16,8 @@ Planck_compressed.inverse_correlation_matrix = [[ 4.51266537, -0.59697118, 0.755
 #Planck_compressed.omega_b = [0.02228, 0.00023]
 #Planck_compressed.n_s = [0.9660, 0.0061]
 
-#Planck_compressed.planck_values = np.array([[1.7488, 0.0074], [301.76, 0.14], [0.02228, 0.00023], [0.9660, 0.0061]])
-Planck_compressed.planck_values = [[1.7488, 0.0074], [301.76, 0.14], [0.02228, 0.00023], [0.9660, 0.0061]]
+#Planck_compressed.planck_values = [[1.7488, 0.0074], [301.76, 0.14], [0.02228, 0.00023], [0.9660, 0.0061]]
 
+Planck_compressed.planck_values_mean = [1.7488, 301.76, 0.02228, 0.9660]
+Planck_compressed.planck_values_sigma = [0.0074, 0.14, 0.00023, 0.0061]
                

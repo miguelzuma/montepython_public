@@ -21,15 +21,14 @@ class Planck_compressed(Likelihood_prior):
         n_s = cosmo.n_s()
 
         values = np.array([R, l_a, omega_b, n_s])
-        planck_values = zip(*self.planck_values)
 
         # loglkl = -1/2 * (x_i - x_mean_i) * 1/sigma_i * corr_mat_ij^-1 *
         #                 1/sigma_j * (x_j - x_mean_j)
 
-        differences_over_sigma = ((values[:][0] - planck_values[0]) /
-                                  planck_values[1])
+        differences_over_sigma = (values - np.array(self.planck_values_mean)) / self.planck_values_sigma
 
         loglkl = -0.5 * np.dot(differences_over_sigma,
                                np.dot(self.inverse_correlation_matrix,
                                       differences_over_sigma))
+
         return loglkl
