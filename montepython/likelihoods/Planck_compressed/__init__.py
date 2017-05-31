@@ -20,12 +20,16 @@ class Planck_compressed(Likelihood):
         omega_b = cosmo.omega_b()
         n_s = cosmo.n_s()
 
-        values = np.array([R, l_a, omega_b, n_s])
+        # Using self in order to be accesible by data_mp_likelihoods.py
+        # work-in-class module.
+        # https://github.com/miguelzuma/work-in-class &&
+        # https://github.com/ardok-m/work-in-class &&
+        self.values = np.array([R, l_a, omega_b, n_s])
 
         # loglkl = -1/2 * (x_i - x_mean_i) * 1/sigma_i * corr_mat_ij^-1 *
         #                 1/sigma_j * (x_j - x_mean_j)
 
-        differences_over_sigma = (values - np.array(self.planck_values_mean)) / self.planck_values_sigma
+        differences_over_sigma = (self.values - np.array(self.planck_values_mean)) / self.planck_values_sigma
 
         loglkl = -0.5 * np.dot(differences_over_sigma,
                                np.dot(self.inverse_correlation_matrix,
