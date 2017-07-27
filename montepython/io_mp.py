@@ -255,12 +255,12 @@ def print_error(error_msg, data):
 
     if "Isnan v_X" in error_msg:
       err_code = 10
-      
+
     if 'Isnan v_X' in error_msg:
       err_code = 10
     if 'early_smg' and 'adiabatic' in error_msg:
       err_code = 11
-    
+
     out = data.err
     for elem in data.get_mcmc_parameters(['varying']):
       out.write('%.6e\t' %
@@ -286,7 +286,7 @@ def refresh_file(data):
     data.err = open(data.err_name, 'a')
 
 
-def create_output_files(command_line, data):
+def create_output_files(command_line, data, only_error=False):
     """
     Automatically create a new name for the chain.
 
@@ -302,6 +302,14 @@ def create_output_files(command_line, data):
         changing things here.
 
     """
+
+    if only_error:
+        #open/create error file
+        data.err_name = os.path.join(command_line.folder,"error_log.txt")
+        data.err = open(data.err_name,'a')
+        print 'Creating error file %s\n' % data.err_name
+        return
+
     if command_line.restart is None:
         number = command_line.N
     else:
@@ -340,10 +348,6 @@ def create_output_files(command_line, data):
         for line in open(command_line.restart, 'r'):
             data.out.write(line)
 
-    #open/create error file
-    data.err_name = os.path.join(command_line.folder,"error_log.txt")
-    data.err = open(data.err_name,'a')
-    print 'Creating error file %s\n' % data.err_name
 
 
 
