@@ -303,53 +303,64 @@ def create_output_files(command_line, data, only_error=False):
 
     """
 
-    if only_error:
-        #open/create error file
-        data.err_name = os.path.join(command_line.folder,"error_log.txt")
-        data.err = open(data.err_name,'a')
-        print 'Creating error file %s\n' % data.err_name
-        return
+    for f in ('out', 'err'):
+        if (f == 'out') and only_error:
+            continue
 
-    if command_line.restart is None:
-        number = command_line.N
-    else:
-        number = int(
-            command_line.restart.split(os.path.sep)[-1].split('__')[0].
-            split('_')[1]) + command_line.N
+        if command_line.restart is None:
+            number = command_line.N
+        else:
+            number = int(
+                command_line.restart.split(os.path.sep)[-1].split('__')[0].
+                split('_')[1]) + command_line.N
 
-    # output file
-    outname_base = '{0}_{1}__'.format(date.today(), number)
-    suffix = 0
-    trying = True
-    if command_line.chain_number is None:
-        for files in os.listdir(command_line.folder):
-            if files.find(outname_base) != -1:
-                if int(files.split('__')[-1].split('.')[0]) > suffix:
-                    suffix = int(files.split('__')[-1].split('.')[0])
-        suffix += 1
-        while trying:
-            data.out = open(os.path.join(
-                command_line.folder, outname_base)+str(suffix)+'.txt', 'w')
-            try:
-                lock(data.out, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                trying = False
-            except LockError:
+        # output file
+        outname_base = '{0}_{1}__'.format(date.today(), number)
+        suffix = 0
+        suffix_err = ""
+        if f == 'err':
+            suffix_err = "-error_log"
+
+        trying = True
+        if command_line.chain_number is None:
+            for files in os.listdir(command_line.folder):
+                if files.find(outname_base) != -1:
+                    matched_number = re.search('\d*', files.split('__')[-1])
+                    number = int(matched_number.group(0))
+                    if number > suffix:
+                        suffix = number
+
+            if (f == 'out') or only_error:
                 suffix += 1
-        data.out_name = os.path.join(
-            command_line.folder, outname_base)+str(suffix)+'.txt'
-        print 'Creating %s\n' % data.out_name
-    else:
-        data.out_name = os.path.join(
-            command_line.folder, outname_base)+command_line.chain_number+'.txt'
-        data.out = open(data.out_name, 'w')
-        print 'Creating %s\n' % data.out_name
-    # in case of a restart, copying the whole thing in the new file
-    if command_line.restart is not None:
-        for line in open(command_line.restart, 'r'):
-            data.out.write(line)
 
+            while trying:
+                open_file = open(os.path.join(
+                    command_line.folder, outname_base)+str(suffix)+suffix_err+'.txt', 'w')
 
+                try:
+                    lock(open_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    trying = False
+                except LockError:
+                    suffix += 1
+            name = os.path.join(
+                command_line.folder, outname_base)+str(suffix)+ suffix_err+'.txt'
+            print 'Creating %s\n' % name
+        else:
+            name = os.path.join(
+                command_line.folder, outname_base)+command_line.chain_number+suffix_err+'.txt'
+            open_file = open(name, 'w')
+            print 'Creating %s\n' % name
+        # in case of a restart, copying the whole thing in the new file
+        if command_line.restart is not None:
+            for line in open(command_line.restart[:-4]+suffix_err+txt, 'r'):
+                open_file.write(line)
 
+        if f == 'out':
+            data.out = open_file
+            data.out_name = name
+        else:
+            data.err = open_file
+            data.err_name = name
 
 
 def get_tex_name(name, number=1):
