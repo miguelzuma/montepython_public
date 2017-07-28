@@ -84,6 +84,7 @@ def initialise(custom_command=''):
             io_mp.create_output_files(command_line, data)
         # NS: Creating the NS subfolder and the MultiNest arguments
         elif command_line.method == 'NS':
+            io_mp.create_output_files(command_line, data, only_error=True)
             from nested_sampling import initialise as initialise_ns
             initialise_ns(cosmo, data, command_line)
 

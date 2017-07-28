@@ -50,11 +50,25 @@ class Prior(object):
                         "You asked for a gaussian prior, but provided no " +
                         "mean nor sigma. Please add them in the parameter " +
                         "file.")
+            # in case of a triangular prior, one expects one more entry, the
+            # position of the mode
+            elif self.prior_type == 'triangular':
+                try:
+                    self.mode = array[7]
+                    # TODO: Consider unifying prior variable names.
+                except IndexError:
+                    raise io_mp.ConfigurationError(
+                        "You asked for a triangular prior, but provided no " +
+                        "position for the mode. Please add it in the parameter " +
+                        "file.")
 
         # Store boundaries for convenient access later
         # Put all fields that are -1 to None to avoid confusion later on.
         self.prior_range = [a if not((a is -1) or (a is None)) else None
                             for a in deepcopy(array[1:3])]
+        # TODO: As implemented above, you wouldn't be able to set -1 as
+        # boundary for one of the parameters. Consider leaving the None part
+        # only
 
     def draw_from_prior(self):
         """
@@ -76,10 +90,13 @@ class Prior(object):
             while not within_bounds:
                 value = rd.gauss(self.mu, self.sigma)
                 # Check for boundaries problem
-                within_bounds = calue_within_prior_range(value)
+                within_bounds = self.value_within_prior_range(value)
 
             return value
-                
+
+        elif self.prior_type == 'triangular':
+            return rd.triangular(self.prior_range[0], self.prior_range[1], self.mode)
+
     def value_within_prior_range(self, value):
         """
         Check for a value being in or outside the prior range
@@ -112,5 +129,5 @@ class Prior(object):
         which should have been previously checked with :func:`is_bound`
 
         """
-        return (self.prior_range[0] + 
+        return (self.prior_range[0] +
                 value * (self.prior_range[1] - self.prior_range[0]))
