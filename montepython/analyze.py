@@ -1144,6 +1144,10 @@ def recover_folder_and_files(files):
     # The following list defines the substring that a chain should contain for
     # the code to recognise it as a proper chain.
     substrings = ['.txt', '__']
+    # The following variable defines the substring that identify error_log
+    # files and therefore there must not be taken into account in the analysis.
+    substring_err = 'error_log'
+
     limit = 10
     # If the first element is a folder, grab all chain files inside
     if os.path.isdir(files[0]):
@@ -1151,6 +1155,7 @@ def recover_folder_and_files(files):
         files = [os.path.join(folder, elem) for elem in os.listdir(folder)
                  if not os.path.isdir(os.path.join(folder, elem))
                  and not os.path.getsize(os.path.join(folder, elem)) < limit
+                 and (substring_err not in elem)
                  and all([x in elem for x in substrings])]
     # Otherwise, extract the folder from the chain file-name.
     else:
@@ -1164,6 +1169,7 @@ def recover_folder_and_files(files):
                  if os.path.join(folder, elem) in np.copy(files)
                  and not os.path.isdir(os.path.join(folder, elem))
                  and not os.path.getsize(os.path.join(folder, elem)) < limit
+                 and (substring_err not in elem)
                  and all([x in elem for x in substrings])]
     basename = os.path.basename(folder)
     return folder, files, basename
