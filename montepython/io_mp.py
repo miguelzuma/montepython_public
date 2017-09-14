@@ -352,7 +352,7 @@ def create_output_files(command_line, data, only_error=False):
             print 'Creating %s\n' % name
         # in case of a restart, copying the whole thing in the new file
         if command_line.restart is not None:
-            for line in open(command_line.restart[:-4]+suffix_err+txt, 'r'):
+            for line in open(command_line.restart[:-4]+suffix_err+'txt', 'r'):
                 open_file.write(line)
 
         if f == 'out':
