@@ -60,6 +60,9 @@ class bao_boss(Likelihood):
 
         chi2 = 0.
 
+        # This object is meant to be used with data_mp_likelihoods.py
+        self.theo = []
+
         # for each point, compute angular distance da, radial distance dr,
         # volume distance dv, sound horizon at baryon drag rs_d,
         # theoretical prediction and chi2 contribution
@@ -91,6 +94,8 @@ class bao_boss(Likelihood):
                     "in %d-th line not understood" % i)
 
             chi2 += ((theo - self.data[i]) / self.error[i]) ** 2
+
+            self.theo.append(theo)
 
         # return ln(L)
         lkl = - 0.5 * chi2
