@@ -22,9 +22,11 @@ import logging
 
 import io_mp
 import sampler
-from cosmoHammer.likelihood.chain.LikelihoodComputationChain import (
-    LikelihoodComputationChain)
-from cosmoHammer.sampler.CosmoHammerSampler import CosmoHammerSampler
+from cosmoHammer import MpiCosmoHammerSampler
+from cosmoHammer import LikelihoodComputationChain
+#from cosmoHammer.likelihood.chain.LikelihoodComputationChain import (
+#    LikelihoodComputationChain)
+#from cosmoHammer.sampler.CosmoHammerSampler import CosmoHammerSampler
 from cosmoHammer.util.SampleFileUtil import SampleFileUtil
 
 # Cosmo Hammer subfolder and name separator
@@ -127,7 +129,7 @@ def run(cosmo, data, command_line):
         num_threads = 1
 
     # Create the Sampler object
-    sampler_hammer = CosmoHammerSampler(
+    sampler_hammer = MpiCosmoHammerSampler(
         params=params,
         likelihoodComputationChain=chain,
         filePrefix=file_prefix,
