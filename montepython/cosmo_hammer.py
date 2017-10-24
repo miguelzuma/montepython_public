@@ -103,7 +103,9 @@ def run(cosmo, data, command_line):
     file_prefix = os.path.join(command_line.folder, CH_subfolder, chain_name)
 
     # Recover the User options
-    data.CH_arguments = {}
+    data.CH_arguments = {'walkersRatio': 50,
+                         'burninIterations': 10,
+                         'sampleIterations': 30}
     for arg in CH_user_arguments:
         value = getattr(command_line, CH_prefix+arg)
         if value != -1:
@@ -133,9 +135,6 @@ def run(cosmo, data, command_line):
         params=params,
         likelihoodComputationChain=chain,
         filePrefix=file_prefix,
-        walkersRatio=50,
-        burninIterations=10,
-        sampleIterations=30,
         storageUtil=derived_util,
         threadCount=num_threads,
         **data.CH_arguments)
