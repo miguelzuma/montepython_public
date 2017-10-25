@@ -50,6 +50,10 @@ CH_user_arguments = {
     {'help': 'Number of sample iterations',
      'type': int}}
 
+# List of strings that will contain the derived parameters names.
+# Filled in run using the MontePython class data
+# Used in DerivedUtil.persistValues
+CH_derived_names = []
 
 def run(cosmo, data, command_line):
     """
@@ -59,6 +63,9 @@ def run(cosmo, data, command_line):
     # Store the parameters inside the format expected by CosmoHammer
     # TODO: about the derived params?
     parameter_names = data.get_mcmc_parameters(["varying"])
+    # Fill now CH_derived_names to be used in DerivedUtil.persistValues
+    global CH_derived_names
+    CH_derived_names= data.get_mcmc_parameters(["derived"])
 
     # Ensure that their prior is bound and flat
     is_flat, is_bound = sampler.check_flat_bound_priors(
@@ -196,8 +203,11 @@ class DerivedUtil(SampleFileUtil):
         """
         # extend the pos array to also contain the value of the derived
         # parameters
+
+        derived_not_computed = [np.NaN] * len(CH_derived_names)
+
         derived = np.array(
-            [[a for a in elem.itervalues()] for elem in data])
+            [[a for a in elem.itervalues()] if elem else derived_not_computed for elem in data])
         final = np.concatenate((pos, derived), axis=1)
 
         posFile.write("\n".join(
