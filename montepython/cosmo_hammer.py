@@ -35,6 +35,7 @@ CH_separator = '-'
 # Cosmo Hammer file names ending, after the defined 'base_name'
 name_arguments = '.arguments'
 name_chain = 'chain_CH__sampling.txt'
+name_error_chain =  'chain_CH__sampling-error_log.txt'
 
 # Cosmo Hammer option prefix
 CH_prefix = 'CH_'
@@ -166,6 +167,8 @@ def from_CH_output_to_chains(folder):
 
     This function will be called by the module :mod:`analyze`.
     """
+    chainsClean, lklClean = [], []  # Arrays to store the valid steps.
+    error = []  # Array to store the step did not could not be computed.
 
     chain_name = [a for a in folder.split(os.path.sep) if a][-2]
     base_name = os.path.join(folder, chain_name)
@@ -186,11 +189,20 @@ def from_CH_output_to_chains(folder):
     ## Create the array of ones
     ones = np.array([[1] for _ in range(len(lkl))])
 
+    for x, p in [chains, lkl]:
+        if p is not -np.inf:
+            chainsClean.append(x)
+            lklClean.append(p)
+        else:
+            error.append(x)
+
     ## Concatenate everything and save to file
-    final = np.concatenate((ones, lkl, chains), axis=1)
+    final = np.concatenate((ones, lkl, chainsClean), axis=1)
     output_folder = os.path.join(folder, '..')
     output_chain_path = os.path.join(output_folder, name_chain)
+    output_error_chain_path = os.path.join(output_folder, name_error_chain)
     np.savetxt(output_chain_path, final)
+    np.savetxt(output_error_chain_path, error)
 
 
 class DerivedUtil(SampleFileUtil):
