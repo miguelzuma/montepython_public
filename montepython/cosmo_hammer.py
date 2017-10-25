@@ -183,21 +183,22 @@ def from_CH_output_to_chains(folder):
     # multiplicity. This does not mean that the acceptance rate is one, but
     # points where the code stayed are duplicated in the file.
 
-    ## First, reshape the lkl array
-    lkl = np.array([[elem] for elem in lkl])
-
-    ## Create the array of ones
-    ones = np.array([[1] for _ in range(len(lkl))])
-
-    for x, p in [chains, lkl]:
-        if p is not -np.inf:
+    for x, p in zip(chains, lkl):
+        if p != -np.inf:
             chainsClean.append(x)
-            lklClean.append(p)
+            lklClean.append([p])
         else:
             error.append(x)
 
+    ## First, reshape the lkl array
+    #lkl = np.array([[elem] for elem in lkl])
+
+    ## Create the array of ones
+    ones = np.array([[1] for _ in range(len(lklClean))])
+
+
     ## Concatenate everything and save to file
-    final = np.concatenate((ones, lkl, chainsClean), axis=1)
+    final = np.concatenate((ones, lklClean, chainsClean), axis=1)
     output_folder = os.path.join(folder, '..')
     output_chain_path = os.path.join(output_folder, name_chain)
     output_error_chain_path = os.path.join(output_folder, name_error_chain)
