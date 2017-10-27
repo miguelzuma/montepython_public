@@ -22,9 +22,11 @@ import logging
 
 import io_mp
 import sampler
-from cosmoHammer.likelihood.chain.LikelihoodComputationChain import (
-    LikelihoodComputationChain)
-from cosmoHammer.sampler.CosmoHammerSampler import CosmoHammerSampler
+from cosmoHammer import MpiCosmoHammerSampler
+from cosmoHammer import LikelihoodComputationChain
+#from cosmoHammer.likelihood.chain.LikelihoodComputationChain import (
+#    LikelihoodComputationChain)
+#from cosmoHammer.sampler.CosmoHammerSampler import CosmoHammerSampler
 from cosmoHammer.util.SampleFileUtil import SampleFileUtil
 
 # Cosmo Hammer subfolder and name separator
@@ -33,6 +35,7 @@ CH_separator = '-'
 # Cosmo Hammer file names ending, after the defined 'base_name'
 name_arguments = '.arguments'
 name_chain = 'chain_CH__sampling.txt'
+name_error_chain =  'chain_CH__sampling-error_log.txt'
 
 # Cosmo Hammer option prefix
 CH_prefix = 'CH_'
@@ -48,6 +51,10 @@ CH_user_arguments = {
     {'help': 'Number of sample iterations',
      'type': int}}
 
+# List of strings that will contain the derived parameters names.
+# Filled in run using the MontePython class data
+# Used in DerivedUtil.persistValues
+CH_derived_names = []
 
 def run(cosmo, data, command_line):
     """
@@ -57,6 +64,9 @@ def run(cosmo, data, command_line):
     # Store the parameters inside the format expected by CosmoHammer
     # TODO: about the derived params?
     parameter_names = data.get_mcmc_parameters(["varying"])
+    # Fill now CH_derived_names to be used in DerivedUtil.persistValues
+    global CH_derived_names
+    CH_derived_names= data.get_mcmc_parameters(["derived"])
 
     # Ensure that their prior is bound and flat
     is_flat, is_bound = sampler.check_flat_bound_priors(
@@ -91,6 +101,7 @@ def run(cosmo, data, command_line):
     # here, since data must be called before cosmo.
     chain.addCoreModule(data)
     chain.addCoreModule(cosmo)
+    chain.addCoreModule(store_cosmo_derived)
 
     # Add each likelihood class as a LikelihoodModule
     for likelihood in data.lkl.itervalues():
@@ -101,7 +112,9 @@ def run(cosmo, data, command_line):
     file_prefix = os.path.join(command_line.folder, CH_subfolder, chain_name)
 
     # Recover the User options
-    data.CH_arguments = {}
+    data.CH_arguments = {'walkersRatio': 50,
+                         'burninIterations': 10,
+                         'sampleIterations': 30}
     for arg in CH_user_arguments:
         value = getattr(command_line, CH_prefix+arg)
         if value != -1:
@@ -127,13 +140,10 @@ def run(cosmo, data, command_line):
         num_threads = 1
 
     # Create the Sampler object
-    sampler_hammer = CosmoHammerSampler(
+    sampler_hammer = MpiCosmoHammerSampler(
         params=params,
         likelihoodComputationChain=chain,
         filePrefix=file_prefix,
-        walkersRatio=50,
-        burninIterations=10,
-        sampleIterations=30,
         storageUtil=derived_util,
         threadCount=num_threads,
         **data.CH_arguments)
@@ -158,6 +168,8 @@ def from_CH_output_to_chains(folder):
 
     This function will be called by the module :mod:`analyze`.
     """
+    chainsClean, lklClean = [], []  # Arrays to store the valid steps.
+    error = []  # Array to store the step did not could not be computed.
 
     chain_name = [a for a in folder.split(os.path.sep) if a][-2]
     base_name = os.path.join(folder, chain_name)
@@ -172,17 +184,25 @@ def from_CH_output_to_chains(folder):
     # multiplicity. This does not mean that the acceptance rate is one, but
     # points where the code stayed are duplicated in the file.
 
-    ## First, reshape the lkl array
-    lkl = np.array([[elem] for elem in lkl])
+    # First, separe errors from accepted points:
+    for x, p in zip(chains, lkl):
+        if p != -np.inf:
+            chainsClean.append(x)
+            lklClean.append([p])
+        else:
+            error.append([val for val in x if not np.isnan(val)])  # Remove nan's
 
     ## Create the array of ones
-    ones = np.array([[1] for _ in range(len(lkl))])
+    ones = np.array([[1] for _ in range(len(lklClean))])
+
 
     ## Concatenate everything and save to file
-    final = np.concatenate((ones, lkl, chains), axis=1)
+    final = np.concatenate((ones, lklClean, chainsClean), axis=1)
     output_folder = os.path.join(folder, '..')
     output_chain_path = os.path.join(output_folder, name_chain)
+    output_error_chain_path = os.path.join(output_folder, name_error_chain)
     np.savetxt(output_chain_path, final)
+    np.savetxt(output_error_chain_path, error)
 
 
 class DerivedUtil(SampleFileUtil):
@@ -195,8 +215,11 @@ class DerivedUtil(SampleFileUtil):
         """
         # extend the pos array to also contain the value of the derived
         # parameters
+
+        derived_not_computed = [np.NaN] * len(CH_derived_names)
+
         derived = np.array(
-            [[a for a in elem.itervalues()] for elem in data])
+            [[a for a in elem.itervalues()] if elem else derived_not_computed for elem in data])
         final = np.concatenate((pos, derived), axis=1)
 
         posFile.write("\n".join(
@@ -207,3 +230,30 @@ class DerivedUtil(SampleFileUtil):
         probFile.write("\n".join([str(p) for p in prob]))
         probFile.write("\n")
         probFile.flush()
+
+
+def store_cosmo_derived(ctx):
+    """
+    Store derived parameters. Copied from sampler.compute_lkl
+    """
+    from classy import CosmoSevereError
+
+    cosmo = ctx.get("cosmo")
+    data = ctx.get("data")
+
+    if data.get_mcmc_parameters(['derived']) != []:
+        try:
+            derived = cosmo.get_current_derived_parameters(
+                data.get_mcmc_parameters(['derived']))
+            for name, value in derived.iteritems():
+                data.mcmc_parameters[name]['current'] = value
+        except AttributeError:
+            # This happens if the classy wrapper is still using the old
+            # convention, expecting data as the input parameter
+            cosmo.get_current_derived_parameters(data)
+        except CosmoSevereError:
+            raise io_mp.CosmologicalModuleError(
+                "Could not write the current derived parameters")
+    for elem in data.get_mcmc_parameters(['derived']):
+        data.mcmc_parameters[elem]['current'] /= \
+            data.mcmc_parameters[elem]['scale']
