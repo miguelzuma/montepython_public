@@ -101,6 +101,7 @@ def run(cosmo, data, command_line):
     # here, since data must be called before cosmo.
     chain.addCoreModule(data)
     chain.addCoreModule(cosmo)
+    chain.addCoreModule(store_cosmo_derived)
 
     # Add each likelihood class as a LikelihoodModule
     for likelihood in data.lkl.itervalues():
@@ -231,3 +232,30 @@ class DerivedUtil(SampleFileUtil):
         probFile.write("\n".join([str(p) for p in prob]))
         probFile.write("\n")
         probFile.flush()
+
+
+def store_cosmo_derived(ctx):
+    """
+    Store derived parameters. Copied from sampler.compute_lkl
+    """
+    from classy import CosmoSevereError
+
+    cosmo = ctx.get("cosmo")
+    data = ctx.get("data")
+
+    if data.get_mcmc_parameters(['derived']) != []:
+        try:
+            derived = cosmo.get_current_derived_parameters(
+                data.get_mcmc_parameters(['derived']))
+            for name, value in derived.iteritems():
+                data.mcmc_parameters[name]['current'] = value
+        except AttributeError:
+            # This happens if the classy wrapper is still using the old
+            # convention, expecting data as the input parameter
+            cosmo.get_current_derived_parameters(data)
+        except CosmoSevereError:
+            raise io_mp.CosmologicalModuleError(
+                "Could not write the current derived parameters")
+    for elem in data.get_mcmc_parameters(['derived']):
+        data.mcmc_parameters[elem]['current'] /= \
+            data.mcmc_parameters[elem]['scale']
