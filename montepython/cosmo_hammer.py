@@ -184,15 +184,13 @@ def from_CH_output_to_chains(folder):
     # multiplicity. This does not mean that the acceptance rate is one, but
     # points where the code stayed are duplicated in the file.
 
+    # First, separe errors from accepted points:
     for x, p in zip(chains, lkl):
         if p != -np.inf:
             chainsClean.append(x)
             lklClean.append([p])
         else:
-            error.append(x)
-
-    ## First, reshape the lkl array
-    #lkl = np.array([[elem] for elem in lkl])
+            error.append([val for val in x if not np.isnan(val)])  # Remove nan's
 
     ## Create the array of ones
     ones = np.array([[1] for _ in range(len(lklClean))])
