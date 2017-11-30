@@ -188,7 +188,7 @@ def from_CH_output_to_chains(folder):
     for x, p in zip(chains, lkl):
         if p != -np.inf:
             chainsClean.append(x)
-            lklClean.append([p])
+            lklClean.append([-p])  # MP stores -loglkl in its files.
         else:
             error.append([val for val in x if not np.isnan(val)])  # Remove nan's
 
