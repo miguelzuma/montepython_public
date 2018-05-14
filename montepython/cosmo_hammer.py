@@ -219,7 +219,8 @@ class DerivedUtil(SampleFileUtil):
         derived_not_computed = [np.NaN] * len(CH_derived_names)
 
         derived = np.array(
-            [[a for a in elem.itervalues()] if elem else derived_not_computed for elem in data])
+            #[[a for a in elem.itervalues()] if elem else derived_not_computed for elem in data])
+            [[elem[key] for key in sorted(elem.iterkeys())] if elem else derived_not_computed for elem in data])
         final = np.concatenate((pos, derived), axis=1)
 
         posFile.write("\n".join(
