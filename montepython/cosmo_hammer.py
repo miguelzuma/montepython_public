@@ -254,8 +254,8 @@ def store_cosmo_derived(ctx):
             raise io_mp.CosmologicalModuleError(
                 "Could not write the current derived parameters")
 
-    # If we want the derived parameters stored rescaled
-    # derived_scaled = {elem: value/data.mcmc_parameters[elem]['scale'] for elem, value in derived.iteritems()}
-    # ctx.add('key_data', derived_scaled)
+        ctx.add('key_data', derived)
 
-    ctx.add('key_data', derived)
+        # If we want the derived parameters stored rescaled
+        # derived_scaled = {elem: value/data.mcmc_parameters[elem]['scale'] for elem, value in derived.iteritems()}
+        # ctx.add('key_data', derived_scaled)
