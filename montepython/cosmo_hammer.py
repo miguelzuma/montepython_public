@@ -219,7 +219,8 @@ class DerivedUtil(SampleFileUtil):
         derived_not_computed = [np.NaN] * len(CH_derived_names)
 
         derived = np.array(
-            [[a for a in elem.itervalues()] if elem else derived_not_computed for elem in data])
+            #[[a for a in elem.itervalues()] if elem else derived_not_computed for elem in data])
+            [[elem[key] for key in sorted(elem.iterkeys())] if elem else derived_not_computed for elem in data])
         final = np.concatenate((pos, derived), axis=1)
 
         posFile.write("\n".join(
@@ -234,7 +235,7 @@ class DerivedUtil(SampleFileUtil):
 
 def store_cosmo_derived(ctx):
     """
-    Store derived parameters. Copied from sampler.compute_lkl
+    Store derived parameters. Based on sampler.compute_lkl
     """
     from classy import CosmoSevereError
 
@@ -245,8 +246,6 @@ def store_cosmo_derived(ctx):
         try:
             derived = cosmo.get_current_derived_parameters(
                 data.get_mcmc_parameters(['derived']))
-            for name, value in derived.iteritems():
-                data.mcmc_parameters[name]['current'] = value
         except AttributeError:
             # This happens if the classy wrapper is still using the old
             # convention, expecting data as the input parameter
@@ -254,6 +253,9 @@ def store_cosmo_derived(ctx):
         except CosmoSevereError:
             raise io_mp.CosmologicalModuleError(
                 "Could not write the current derived parameters")
-    for elem in data.get_mcmc_parameters(['derived']):
-        data.mcmc_parameters[elem]['current'] /= \
-            data.mcmc_parameters[elem]['scale']
+
+        ctx.add('key_data', derived)
+
+        # If we want the derived parameters stored rescaled
+        # derived_scaled = {elem: value/data.mcmc_parameters[elem]['scale'] for elem, value in derived.iteritems()}
+        # ctx.add('key_data', derived_scaled)

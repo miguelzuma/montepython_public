@@ -10,10 +10,14 @@ class Planck_compressed(Likelihood):
 
     def loglkl(self, cosmo, data):
 
-        z_star = cosmo.z_optical_depth_unity()  # z at which the optical depth is unity
+        derived_params = cosmo.get_current_derived_parameters(['z_rec', 'rs_rec'])
+
+        #z_star = cosmo.z_optical_depth_unity()  # z at which the optical depth is unity
+        z_star = derived_params['z_rec']  # z at which the optical depth is unity
         # comoving angular diameter distance
         D_A_star = cosmo.angular_distance(z_star) * (z_star + 1)
-        rs_star = cosmo.rs_at_z(z_star)
+        #rs_star = cosmo.rs_at_z(z_star)
+        rs_star = derived_params['rs_rec']
 
         R = np.sqrt(cosmo.Omega_m()) * cosmo.Hubble(0) * D_A_star
         l_a = np.pi * D_A_star / rs_star
